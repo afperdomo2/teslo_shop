@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ProductsScreen extends StatelessWidget {
+  static const String routeName = 'products';
+
   const ProductsScreen({super.key});
 
   @override

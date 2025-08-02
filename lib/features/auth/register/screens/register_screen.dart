@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatelessWidget {
+  static const String routeName = 'auth-register';
+
   const RegisterScreen({super.key});
 
   @override
