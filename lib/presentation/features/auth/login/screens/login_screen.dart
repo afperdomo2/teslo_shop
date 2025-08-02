@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:teslo_app/core/utils/validation_extensions.dart';
-import 'package:teslo_app/features/auth/login/widgets/login_header_section.dart';
+import 'package:teslo_app/presentation/features/auth/login/widgets/login_header_section.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = 'auth-login';

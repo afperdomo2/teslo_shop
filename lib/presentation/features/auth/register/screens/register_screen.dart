@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teslo_app/features/auth/register/widgets/register_header_section.dart';
+import 'package:teslo_app/presentation/features/auth/register/widgets/register_header_section.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const String routeName = 'auth-register';

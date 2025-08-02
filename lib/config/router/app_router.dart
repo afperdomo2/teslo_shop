@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
-import 'package:teslo_app/features/auth/login/screens/login_screen.dart';
-import 'package:teslo_app/features/auth/register/screens/register_screen.dart';
-import 'package:teslo_app/features/products/screens/products_screen.dart';
+import 'package:teslo_app/presentation/features/auth/login/screens/login_screen.dart';
+import 'package:teslo_app/presentation/features/auth/register/screens/register_screen.dart';
+import 'package:teslo_app/presentation/features/products/screens/products_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
