@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:form_validator/form_validator.dart';
 import 'package:teslo_app/config/router/app_router.dart';
 import 'package:teslo_app/config/theme/app_theme.dart';
 
@@ -11,6 +12,8 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ValidationBuilder.setLocale('es');
+
     return MaterialApp.router(
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,

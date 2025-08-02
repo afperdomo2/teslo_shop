@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:teslo_app/core/utils/validation_extensions.dart';
+import 'package:teslo_app/features/auth/login/widgets/login_header_section.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = 'auth-login';
@@ -49,48 +52,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Header Section
                 Expanded(
                   flex: 1,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Logo/Icon
-                        Container(
-                          height: 80,
-                          width: 80,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            borderRadius: BorderRadius.circular(25),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(context).primaryColor.withOpacity(0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.store, size: 50, color: Colors.white),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Welcome Text
-                        Text(
-                          '¡Bienvenido!',
-                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Inicia sesión para continuar',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
+                  child: LoginHeaderSection(
+                    title: '¡Bienvenido!',
+                    subtitle: 'Inicia sesión para continuar',
                   ),
                 ),
 
@@ -130,15 +94,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Theme.of(context).primaryColor,
                                 ),
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor ingresa tu email';
-                                }
-                                if (!value.contains('@')) {
-                                  return 'Ingresa un email válido';
-                                }
-                                return null;
-                              },
+                              validator: ValidationBuilder().email().build(),
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                             ),
 
                             const SizedBox(height: 20),
@@ -166,15 +123,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   },
                                 ),
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor ingresa tu contraseña';
-                                }
-                                if (value.length < 6) {
-                                  return 'La contraseña debe tener al menos 6 caracteres';
-                                }
-                                return null;
-                              },
+                              validator: ValidationBuilder().isSecurePassword().build(),
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                             ),
 
                             const SizedBox(height: 16),

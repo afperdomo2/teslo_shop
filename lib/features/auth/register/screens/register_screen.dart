@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:teslo_app/features/auth/register/widgets/register_header_section.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const String routeName = 'auth-register';
@@ -54,49 +55,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Header Section
                 Expanded(
                   flex: 1,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Logo/Icon
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 80,
-                          width: 80,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(context).primaryColor.withOpacity(0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.person_add, size: 50, color: Colors.white),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // Welcome Text
-                        Text(
-                          '¡Crear Cuenta!',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Únete a nuestra comunidad',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
+                  child: RegisterHeaderSection(
+                    title: '¡Crear Cuenta!',
+                    subtitle: 'Únete a nuestra comunidad',
                   ),
                 ),
 

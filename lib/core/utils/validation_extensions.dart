@@ -1,0 +1,165 @@
+import 'package:form_validator/form_validator.dart';
+
+/// Extensiones para ValidationBuilder que añaden validaciones numéricas
+extension NumericValidationExtension on ValidationBuilder {
+  /// Valida que el valor sea un número válido
+  ValidationBuilder isNumber([String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final numValue = num.tryParse(value);
+      if (numValue == null) {
+        return message ?? 'Debe ser un número válido';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor sea un número con un valor mínimo
+  ValidationBuilder min(num minValue, [String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final numValue = num.tryParse(value);
+      if (numValue == null) {
+        return 'Debe ser un número válido';
+      }
+
+      if (numValue < minValue) {
+        return message ?? 'El valor debe ser mayor o igual a $minValue';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor sea un número con un valor máximo
+  ValidationBuilder max(num maxValue, [String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final numValue = num.tryParse(value);
+      if (numValue == null) {
+        return 'Debe ser un número válido';
+      }
+
+      if (numValue > maxValue) {
+        return message ?? 'El valor debe ser menor o igual a $maxValue';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor sea un número dentro de un rango [minValue, maxValue]
+  ValidationBuilder range(num minValue, num maxValue, [String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final numValue = num.tryParse(value);
+      if (numValue == null) {
+        return 'Debe ser un número válido';
+      }
+
+      if (numValue < minValue || numValue > maxValue) {
+        return message ?? 'El valor debe estar entre $minValue y $maxValue';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor sea un número entero
+  ValidationBuilder integer([String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final intValue = int.tryParse(value);
+      if (intValue == null) {
+        return message ?? 'Debe ser un número entero';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor sea un número decimal con precisión específica
+  ValidationBuilder decimal(int precision, [String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final numValue = num.tryParse(value);
+      if (numValue == null) {
+        return 'Debe ser un número válido';
+      }
+
+      // Verificar que el número de decimales no exceda la precisión
+      final parts = value.split('.');
+      if (parts.length > 1 && parts[1].length > precision) {
+        return message ?? 'Debe tener máximo $precision decimales';
+      }
+
+      return null;
+    });
+  }
+
+  /// Valida que el valor sea un número positivo (mayor que cero)
+  ValidationBuilder positive([String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final numValue = num.tryParse(value);
+      if (numValue == null) {
+        return 'Debe ser un número válido';
+      }
+
+      if (numValue <= 0) {
+        return message ?? 'Debe ser un número positivo';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor sea un número no negativo (mayor o igual a cero)
+  ValidationBuilder nonNegative([String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final numValue = num.tryParse(value);
+      if (numValue == null) {
+        return 'Debe ser un número válido';
+      }
+
+      if (numValue < 0) {
+        return message ?? 'No puede ser un número negativo';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor sea un VIN (Vehicle Identification Number) válido
+  ValidationBuilder isVIN([String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null; // Es opcional
+      if (value.length != 17) return message ?? 'El VIN debe tener exactamente 17 caracteres';
+      // Validación básica de formato VIN (caracteres alfanuméricos excluyendo I, O, Q)
+      final RegExp vinRegExp = RegExp(r'^[A-HJ-NPR-Z0-9]{17}$', caseSensitive: false);
+      if (!vinRegExp.hasMatch(value)) {
+        return message ?? 'Formato de VIN inválido (no debe contener I, O, Q)';
+      }
+      return null;
+    });
+  }
+
+  // Valida una contraseña segura con mínimo 6 caracteres, al menos una mayúscula, una minúscula, un número
+  ValidationBuilder isSecurePassword([String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null; // Es opcional
+      final RegExp passwordRegExp = RegExp(
+        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$',
+        caseSensitive: false,
+      );
+      if (!passwordRegExp.hasMatch(value)) {
+        return message ??
+            'La contraseña debe tener al menos 6 caracteres, una mayúscula, una minúscula y un número';
+      }
+      return null;
+    });
+  }
+}
