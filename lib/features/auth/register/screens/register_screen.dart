@@ -61,6 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Logo/Icon
+                        const SizedBox(height: 8),
                         Container(
                           height: 80,
                           width: 80,
@@ -75,9 +76,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ],
                           ),
-                          child: const Icon(Icons.person_add, size: 40, color: Colors.white),
+                          child: const Icon(Icons.person_add, size: 50, color: Colors.white),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
 
                         // Welcome Text
                         Text(
@@ -101,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Form Section
                 Expanded(
-                  flex: 4,
+                  flex: 3,
                   child: Container(
                     width: double.infinity,
                     decoration: const BoxDecoration(

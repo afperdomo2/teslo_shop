@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Header Section
                 Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -57,8 +57,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         // Logo/Icon
                         Container(
-                          height: 100,
-                          width: 100,
+                          height: 80,
+                          width: 80,
                           decoration: BoxDecoration(
                             color: Theme.of(context).primaryColor,
                             borderRadius: BorderRadius.circular(25),
@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Form Section
                 Expanded(
-                  flex: 3,
+                  flex: 2,
                   child: Container(
                     width: double.infinity,
                     decoration: const BoxDecoration(
