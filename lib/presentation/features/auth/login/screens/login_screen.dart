@@ -3,6 +3,7 @@ import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:teslo_app/core/utils/validation_extensions.dart';
 import 'package:teslo_app/presentation/features/auth/login/widgets/login_header_section.dart';
+import 'package:teslo_app/presentation/features/auth/register/screens/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = 'auth-login';
@@ -18,10 +19,42 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _rememberMe = false;
+  bool _isFormValid = false;
+
+  // Validaciones
+  final emailValidator = ValidationBuilder().email().build();
+  final passwordValidator = ValidationBuilder().isSecurePassword().build();
+
+  @override
+  void initState() {
+    super.initState();
+    // Escuchar cambios en los controladores para validar en tiempo real
+    _emailController.addListener(_validateForm);
+    _passwordController.addListener(_validateForm);
+  }
+
+  void _validateForm() {
+    // Verificar si ambos campos tienen texto y no tienen errores
+    final email = _emailController.text;
+    final password = _passwordController.text;
+
+    final emailError = emailValidator(email);
+    final passwordError = passwordValidator(password);
+
+    final isValid =
+        email.isNotEmpty && password.isNotEmpty && emailError == null && passwordError == null;
+
+    if (_isFormValid != isValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _emailController.removeListener(_validateForm);
+    _passwordController.removeListener(_validateForm);
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -93,8 +126,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Icons.email_outlined,
                                   color: Theme.of(context).primaryColor,
                                 ),
+                                border: OutlineInputBorder(),
                               ),
-                              validator: ValidationBuilder().email().build(),
+                              validator: emailValidator,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                             ),
 
@@ -123,38 +157,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   },
                                 ),
                               ),
-                              validator: ValidationBuilder().isSecurePassword().build(),
+                              validator: passwordValidator,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // Remember me and Forgot password
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Checkbox(
-                                      value: _rememberMe,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _rememberMe = value ?? false;
-                                        });
-                                      },
-                                      activeColor: Theme.of(context).primaryColor,
-                                    ),
-                                    const Text('Recordarme'),
-                                  ],
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    // Lógica para recuperar contraseña
-                                    _showForgotPasswordDialog();
-                                  },
-                                  child: const Text('¿Olvidaste tu contraseña?'),
-                                ),
-                              ],
                             ),
 
                             const SizedBox(height: 24),
@@ -163,11 +167,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             SizedBox(
                               height: 50,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    _handleLogin();
-                                  }
-                                },
+                                onPressed: _isFormValid
+                                    ? () {
+                                        if (_formKey.currentState!.validate()) {
+                                          _handleLogin();
+                                        }
+                                      }
+                                    : null,
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -189,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const Text('¿No tienes cuenta? '),
                                 TextButton(
                                   onPressed: () {
-                                    context.goNamed('auth-register');
+                                    context.goNamed(RegisterScreen.routeName);
                                   },
                                   child: const Text(
                                     'Regístrate',
@@ -237,45 +243,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     });
-  }
-
-  void _showForgotPasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Recuperar Contraseña'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Ingresa tu correo electrónico para recibir un enlace de recuperación.'),
-            const SizedBox(height: 16),
-            TextFormField(
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Correo Electrónico',
-                prefixIcon: Icon(Icons.email_outlined),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Enlace de recuperación enviado'),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              );
-            },
-            child: const Text('Enviar'),
-          ),
-        ],
-      ),
-    );
   }
 }

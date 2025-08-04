@@ -115,38 +115,9 @@ extension NumericValidationExtension on ValidationBuilder {
       return null;
     });
   }
+}
 
-  /// Valida que el valor sea un número no negativo (mayor o igual a cero)
-  ValidationBuilder nonNegative([String? message]) {
-    return add((value) {
-      if (value == null || value.isEmpty) return null;
-
-      final numValue = num.tryParse(value);
-      if (numValue == null) {
-        return 'Debe ser un número válido';
-      }
-
-      if (numValue < 0) {
-        return message ?? 'No puede ser un número negativo';
-      }
-      return null;
-    });
-  }
-
-  /// Valida que el valor sea un VIN (Vehicle Identification Number) válido
-  ValidationBuilder isVIN([String? message]) {
-    return add((value) {
-      if (value == null || value.isEmpty) return null; // Es opcional
-      if (value.length != 17) return message ?? 'El VIN debe tener exactamente 17 caracteres';
-      // Validación básica de formato VIN (caracteres alfanuméricos excluyendo I, O, Q)
-      final RegExp vinRegExp = RegExp(r'^[A-HJ-NPR-Z0-9]{17}$', caseSensitive: false);
-      if (!vinRegExp.hasMatch(value)) {
-        return message ?? 'Formato de VIN inválido (no debe contener I, O, Q)';
-      }
-      return null;
-    });
-  }
-
+extension SecurityValidationExtension on ValidationBuilder {
   // Valida una contraseña segura con mínimo 6 caracteres, al menos una mayúscula, una minúscula, un número
   ValidationBuilder isSecurePassword([String? message]) {
     return add((value) {
