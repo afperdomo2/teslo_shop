@@ -2,6 +2,17 @@
 
 A new Flutter project.
 
+## 💻2. Variables de entorno
+
+```sh
+# Crear el archivo de variables de entono
+touch .env
+```
+
+En el archivo `.env`, tomar como base el archivo de `example.env`, para crear las variables
+
+---
+
 ## ⛑️ 6. Ayuda
 
 ### 🗺️ 6.1 Guías
