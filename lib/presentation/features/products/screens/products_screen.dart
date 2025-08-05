@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:teslo_app/presentation/shared/shared.dart';
+import 'package:teslo_app/presentation/shared/widgets/side_menu.dart';
 
 class ProductsScreen extends StatelessWidget {
   static const String routeName = 'products';

@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:teslo_app/core/utils/validation_extensions.dart';
 import 'package:teslo_app/presentation/features/auth/login/widgets/login_header_section.dart';
 import 'package:teslo_app/presentation/features/auth/register/screens/register_screen.dart';
+import 'package:teslo_app/presentation/providers/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   static const String routeName = 'auth-login';
 
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -63,6 +65,34 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
+    // Escuchar cambios en el estado de autenticación
+    ref.listen(authProvider, (previous, next) {
+      if (next.authStatus == AuthStatus.authenticated) {
+        // Login exitoso - navegar a productos
+        context.goNamed('products');
+
+        // Mostrar mensaje de éxito
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('¡Bienvenido ${next.user?.fullName ?? 'de vuelta'}!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        );
+      } else if (next.authStatus == AuthStatus.unauthenticated && next.errorMessage.isNotEmpty) {
+        // Error en el login
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.errorMessage),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       body: SafeArea(
@@ -166,23 +196,44 @@ class _LoginScreenState extends State<LoginScreen> {
                             // Login Button
                             SizedBox(
                               height: 50,
-                              child: ElevatedButton(
-                                onPressed: _isFormValid
-                                    ? () {
-                                        if (_formKey.currentState!.validate()) {
-                                          _handleLogin();
-                                        }
-                                      }
-                                    : null,
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Iniciar Sesión',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
+                              child: Consumer(
+                                builder: (context, ref, child) {
+                                  final authState = ref.watch(authProvider);
+                                  final isLoading = authState.authStatus == AuthStatus.checking;
+
+                                  return ElevatedButton(
+                                    onPressed: (_isFormValid && !isLoading)
+                                        ? () {
+                                            if (_formKey.currentState!.validate()) {
+                                              _handleLogin();
+                                            }
+                                          }
+                                        : null,
+                                    style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: isLoading
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Iniciar Sesión',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                  );
+                                },
                               ),
                             ),
 
@@ -218,30 +269,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogin() {
-    // Simular el proceso de login
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+  void _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-    // Simular delay de autenticación
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context).pop(); // Cerrar loading
+    // Obtener el notifier del provider
+    final authNotifier = ref.read(authProvider.notifier);
 
-      // Navegar a la pantalla de productos
-      context.goNamed('products');
-
-      // Mostrar mensaje de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('¡Bienvenido de vuelta!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
-    });
+    // Iniciar el proceso de login
+    authNotifier.login(email, password);
   }
 }
