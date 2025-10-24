@@ -66,6 +66,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
+    final authState = ref.watch(authProvider);
+    final isLoading = authState.authStatus == AuthStatus.checking;
+
     // Escuchar cambios en el estado de autenticación
     ref.listen(authProvider, (previous, next) {
       if (next.authStatus == AuthStatus.authenticated) {
@@ -149,6 +152,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
+                              enabled: !isLoading,
                               decoration: InputDecoration(
                                 labelText: 'Correo Electrónico',
                                 hintText: 'Ingresa tu email',
@@ -168,6 +172,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             TextFormField(
                               controller: _passwordController,
                               obscureText: !_isPasswordVisible,
+                              enabled: !isLoading,
+                              onFieldSubmitted: (_) {
+                                if (_isFormValid && !isLoading) {
+                                  _handleLogin();
+                                }
+                              },
                               decoration: InputDecoration(
                                 labelText: 'Contraseña',
                                 hintText: 'Ingresa tu contraseña',
@@ -198,9 +208,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               height: 50,
                               child: Consumer(
                                 builder: (context, ref, child) {
-                                  final authState = ref.watch(authProvider);
-                                  final isLoading = authState.authStatus == AuthStatus.checking;
-
                                   return ElevatedButton(
                                     onPressed: (_isFormValid && !isLoading)
                                         ? () {
