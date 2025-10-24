@@ -1,9 +1,9 @@
-import 'package:teslo_app/data/datasources/auth_remote_data_source_impl.dart';
+import 'package:teslo_app/domain/datasources/auth_data_source.dart';
 import 'package:teslo_app/domain/entities/user.dart';
 import 'package:teslo_app/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthRemoteDataSource _dataSource;
+  final AuthDataSource _dataSource;
 
   AuthRepositoryImpl(this._dataSource);
 

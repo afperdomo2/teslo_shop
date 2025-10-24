@@ -2,17 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:teslo_app/config/constants/envs_constants.dart';
 import 'package:teslo_app/data/errors/auth_errors.dart';
 import 'package:teslo_app/data/mappers/user_mapper.dart';
+import 'package:teslo_app/domain/datasources/auth_data_source.dart';
 import 'package:teslo_app/domain/entities/user.dart';
 
-abstract class AuthRemoteDataSource {
-  Future<User> login(String email, String password);
-
-  Future<User> register(String email, String password, String fullName);
-
-  Future<User> verifyToken(String token);
-}
-
-class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+class AuthRemoteDataSourceImpl implements AuthDataSource {
   final apiClient = Dio(
     BaseOptions(
       baseUrl: EnvsConstants.apiUrl,
