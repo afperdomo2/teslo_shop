@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:teslo_app/core/storage/adapters/shared_prefs_adapter.dart';
 import 'package:teslo_app/data/datasources/auth_remote_data_source_impl.dart';
 import 'package:teslo_app/data/repositories/auth_repository_impl.dart';
 import 'package:teslo_app/domain/entities/user.dart';
@@ -22,22 +23,22 @@ class AuthState {
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final dataSource = AuthRemoteDataSourceImpl();
   final authRepository = AuthRepositoryImpl(dataSource);
-  return AuthNotifier(authRepository: authRepository);
+  final keyValueService = SharedPrefsAdapter();
+
+  return AuthNotifier(authRepository: authRepository, keyValueService: keyValueService);
 });
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepositoryImpl authRepository;
+  final SharedPrefsAdapter keyValueService;
 
-  AuthNotifier({required this.authRepository}) : super(AuthState());
+  AuthNotifier({required this.authRepository, required this.keyValueService}) : super(AuthState());
 
   Future<void> login(String email, String password) async {
-    print('Intentando iniciar sesión con $email y $password');
-
     await Future.delayed(const Duration(milliseconds: 500));
     state = state.copyWith(authStatus: AuthStatus.checking);
     try {
       final user = await authRepository.login(email, password);
-      print('Usuario logueado: ${user.email}');
       _setLoggedUser(user);
     } catch (e) {
       logout(e.toString());
@@ -45,8 +46,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   void logout(String errorMessage) async {
-    print('Cerrando sesión');
-    print('Error: $errorMessage');
+    await keyValueService.remove('token');
     state = state.copyWith(
       authStatus: AuthStatus.unauthenticated,
       user: null,
@@ -56,8 +56,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void verifyToken(String token) async {}
 
-  void _setLoggedUser(User user) {
-    print(22222222222222);
+  void _setLoggedUser(User user) async {
+    await keyValueService.save('token', user.token);
     state = state.copyWith(authStatus: AuthStatus.authenticated, user: user, errorMessage: '');
   }
 }
