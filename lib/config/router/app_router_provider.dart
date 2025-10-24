@@ -36,6 +36,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) {
+      final publicRoutes = ['/login', '/register'];
       final routeDestination = state.matchedLocation;
       final authStatus = goRouterNotifier.authStatus;
 
@@ -44,16 +45,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (authStatus == AuthStatus.unauthenticated) {
-        if (routeDestination == '/login' || routeDestination == '/register') {
+        if (publicRoutes.contains(routeDestination)) {
           return null;
         }
         return '/login';
       }
 
       if (authStatus == AuthStatus.authenticated) {
-        if (routeDestination == '/login' ||
-            routeDestination == '/register' ||
-            routeDestination == '/splash') {
+        if (publicRoutes.contains(routeDestination) || routeDestination == '/splash') {
           return '/';
         }
       }
