@@ -9,9 +9,7 @@ abstract class AuthRemoteDataSource {
 
   Future<User> register(String email, String password, String fullName);
 
-  Future<bool> verifyToken(String token);
-
-  Future<void> logout();
+  Future<User> verifyToken(String token);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -46,20 +44,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> logout() {
-    // TODO: implement logout
-    throw UnimplementedError();
-  }
-
-  @override
   Future<User> register(String email, String password, String fullName) {
     // TODO: implement register
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> verifyToken(String token) {
-    // TODO: implement verifyToken
-    throw UnimplementedError();
+  Future<User> verifyToken(String token) async {
+    print(111111111111);
+    try {
+      final response = await apiClient.post(
+        '/auth/check-status',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      final user = UserMapper.userJsonToEntity(response.data);
+      return user;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw InvalidToken();
+      }
+      throw Exception('Error al verificar el token');
+    } catch (e) {
+      throw Exception('Error al verificar el token');
+    }
   }
 }

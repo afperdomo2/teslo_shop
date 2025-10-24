@@ -5,7 +5,5 @@ abstract class AuthRepository {
 
   Future<User> register(String email, String password, String fullName);
 
-  Future<bool> verifyToken(String token);
-
-  Future<void> logout();
+  Future<User> verifyToken(String token);
 }

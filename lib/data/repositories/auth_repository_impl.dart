@@ -13,17 +13,12 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> logout() {
-    return _dataSource.logout();
-  }
-
-  @override
   Future<User> register(String email, String password, String fullName) {
     return _dataSource.register(email, password, fullName);
   }
 
   @override
-  Future<bool> verifyToken(String token) {
+  Future<User> verifyToken(String token) {
     return _dataSource.verifyToken(token);
   }
 }

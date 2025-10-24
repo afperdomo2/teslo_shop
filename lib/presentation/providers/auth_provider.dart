@@ -32,7 +32,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepositoryImpl authRepository;
   final SharedPrefsAdapter keyValueService;
 
-  AuthNotifier({required this.authRepository, required this.keyValueService}) : super(AuthState());
+  AuthNotifier({required this.authRepository, required this.keyValueService}) : super(AuthState()) {
+    checkAuthStatus();
+  }
 
   Future<void> login(String email, String password) async {
     await Future.delayed(const Duration(milliseconds: 500));
@@ -59,5 +61,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void _setLoggedUser(User user) async {
     await keyValueService.save('token', user.token);
     state = state.copyWith(authStatus: AuthStatus.authenticated, user: user, errorMessage: '');
+  }
+
+  void checkAuthStatus() async {
+    print(555555555555);
+    final token = await keyValueService.read<String>('token');
+    print('TOKEN EN AUTH NOTIFIER: $token');
+    if (token == null) {
+      return logout('');
+    }
+    try {
+      final user = await authRepository.verifyToken(token);
+      _setLoggedUser(user);
+    } catch (e) {
+      logout('');
+    }
   }
 }
