@@ -51,9 +51,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<User> verifyToken(String token) async {
-    print(111111111111);
     try {
-      final response = await apiClient.post(
+      final response = await apiClient.get(
         '/auth/check-status',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
