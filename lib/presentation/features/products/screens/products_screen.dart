@@ -18,6 +18,7 @@ class ProductsScreen extends ConsumerStatefulWidget {
 
 class _ProductsScreenState extends ConsumerState<ProductsScreen> {
   final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTopButton = false;
 
   @override
   void initState() {
@@ -32,8 +33,19 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
   }
 
   void _onScroll() {
+    // Mostrar botón de scroll to top si el usuario ha bajado más de 200 pixels
+    if (_scrollController.position.pixels > 200 && !_showScrollToTopButton) {
+      setState(() {
+        _showScrollToTopButton = true;
+      });
+    } else if (_scrollController.position.pixels <= 200 && _showScrollToTopButton) {
+      setState(() {
+        _showScrollToTopButton = false;
+      });
+    }
+
+    // Cargar más productos cuando esté cerca del final
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      // Cargar más productos cuando esté cerca del final
       ref.read(productsProvider.notifier).loadNextPage();
     }
   }
@@ -126,26 +138,42 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          AnimatedScale(
+            scale: _showScrollToTopButton ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: AnimatedOpacity(
+              opacity: _showScrollToTopButton ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: _showScrollToTopButton
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FloatingActionButton(
+                          heroTag: 'scroll_top',
+                          onPressed: () {
+                            // Scroll to top
+                            _scrollController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          child: const Icon(Icons.arrow_upward),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
           FloatingActionButton(
             heroTag: 'add_product',
             onPressed: () {
               context.pushNamed(CreateUpdateProductScreen.routeName);
             },
             child: const Icon(Icons.add),
-          ),
-          const SizedBox(height: 12),
-          FloatingActionButton.extended(
-            heroTag: 'scroll_top',
-            onPressed: () {
-              // Scroll to top
-              _scrollController.animateTo(
-                0,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-              );
-            },
-            icon: const Icon(Icons.arrow_upward),
-            label: const Text('Inicio'),
           ),
         ],
       ),
