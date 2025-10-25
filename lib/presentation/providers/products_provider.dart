@@ -69,4 +69,22 @@ class ProductsNotifier extends StateNotifier<ProductsState> {
       products: [...state.products, ...products],
     );
   }
+
+  Future<void> refresh() async {
+    if (state.isLoading) return;
+
+    // Resetear el estado
+    state = ProductsState(isLoading: true);
+
+    final products = await productsRepository.findAllProductsByPage(limit: state.limit, offset: 0);
+
+    final isLastPage = products.length < state.limit;
+
+    state = state.copyWith(
+      isLoading: false,
+      isLastPage: isLastPage,
+      offset: products.length,
+      products: products,
+    );
+  }
 }

@@ -56,7 +56,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           // Refrescar productos
-          ref.invalidate(productsProvider);
+          await ref.read(productsProvider.notifier).refresh();
         },
         child: products.isEmpty && !productsState.isLoading
             ? _buildEmptyState(context)
