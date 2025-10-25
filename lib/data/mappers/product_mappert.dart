@@ -1,3 +1,4 @@
+import 'package:teslo_app/config/constants/envs_constants.dart';
 import 'package:teslo_app/domain/entities/product.dart';
 
 class ProductMapper {
@@ -12,8 +13,13 @@ class ProductMapper {
       sizes: List<String>.from(json['sizes']),
       gender: json['gender'] as String,
       tags: List<String>.from(json['tags']),
-      images: List<String>.from(json['images']),
       user: ProductUserMapper.productUserJsonToEntity(json['user'] as Map<String, dynamic>),
+      images: List<String>.from(json['images'])
+          .map(
+            (String image) =>
+                image.startsWith('http') ? image : '${EnvsConstants.apiUrl}/files/product/$image',
+          )
+          .toList(),
     );
   }
 }
