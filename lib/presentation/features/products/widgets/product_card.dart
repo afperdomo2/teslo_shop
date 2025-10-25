@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:teslo_app/domain/entities/product.dart';
+import 'package:teslo_app/presentation/features/products/widgets/product_image_carousel.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -18,59 +19,42 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagen del producto
+            // Imagen del producto con carrusel
             Expanded(
               flex: 3,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Imagen
-                    product.images.isNotEmpty
-                        ? Image.network(
-                            product.images.first,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildPlaceholderImage(context);
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                          )
-                        : _buildPlaceholderImage(context),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: ProductImageCarousel(
+                      images: product.images,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    ),
+                  ),
 
-                    // Badge de stock solo para productos agotados
-                    if (product.stock == 0)
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'Agotado',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
+                  // Badge de stock solo para productos agotados
+                  if (product.stock == 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Agotado',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
             ),
 
@@ -131,13 +115,6 @@ class ProductCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPlaceholderImage(BuildContext context) {
-    return Container(
-      color: Colors.grey[200],
-      child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey[400]),
     );
   }
 
