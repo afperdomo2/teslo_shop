@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:teslo_app/domain/entities/product.dart';
 import 'package:teslo_app/presentation/providers/product_provider.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -21,7 +23,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final productState = ref.watch(productProvider(widget.productId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalles del Producto'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Detalles del Producto'),
+        centerTitle: true,
+        actions: [
+          if (!productState.isLoading && productState.errorMessage == null)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Editar producto',
+              onPressed: () {
+                // Navegar a la pantalla de edición
+                context.push('/product/${widget.productId}/edit');
+              },
+            ),
+        ],
+      ),
       body: productState.isLoading
           ? const _LoadingView()
           : productState.errorMessage != null
@@ -98,7 +114,7 @@ class _ErrorView extends StatelessWidget {
 
 // Vista principal del detalle del producto
 class _ProductDetailView extends StatelessWidget {
-  final product;
+  final Product product;
   final int currentImageIndex;
   final String? selectedSize;
   final Function(int) onImageChanged;
@@ -242,7 +258,7 @@ class _ImageCarousel extends StatelessWidget {
 
 // Header con título y precio
 class _ProductHeader extends StatelessWidget {
-  final product;
+  final Product product;
 
   const _ProductHeader({required this.product});
 
@@ -290,7 +306,7 @@ class _ProductHeader extends StatelessWidget {
 
 // Información del producto (stock y género)
 class _ProductInfo extends StatelessWidget {
-  final product;
+  final Product product;
 
   const _ProductInfo({required this.product});
 
@@ -373,7 +389,7 @@ class _SizeSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Selecciona tu talla',
+          'Tallas disponibles',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),

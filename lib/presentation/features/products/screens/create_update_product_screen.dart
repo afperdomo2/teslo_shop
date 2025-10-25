@@ -1,0 +1,407 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:teslo_app/presentation/providers/product_provider.dart';
+
+class CreateUpdateProductScreen extends ConsumerStatefulWidget {
+  static const String routeName = 'create_update_product';
+  final String? productId;
+
+  const CreateUpdateProductScreen({super.key, this.productId});
+
+  @override
+  ConsumerState<CreateUpdateProductScreen> createState() => _CreateUpdateProductScreenState();
+}
+
+class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Controladores de texto
+  late final TextEditingController _titleController;
+  late final TextEditingController _slugController;
+  late final TextEditingController _priceController;
+  late final TextEditingController _stockController;
+  late final TextEditingController _descriptionController;
+
+  // Estado del formulario
+  String? _selectedGender;
+  final List<String> _selectedSizes = [];
+  final List<String> _tags = [];
+  final bool _isLoading = false;
+
+  final List<String> _availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  final List<String> _genderOptions = ['men', 'women', 'kid', 'unisex'];
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController();
+    _slugController = TextEditingController();
+    _priceController = TextEditingController();
+    _stockController = TextEditingController();
+    _descriptionController = TextEditingController();
+
+    // Si estamos editando, cargar los datos después del primer frame
+    if (widget.productId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadProductData();
+      });
+    }
+  }
+
+  void _loadProductData() {
+    final productState = ref.read(productProvider(widget.productId!));
+
+    if (productState.product != null) {
+      final product = productState.product!;
+      setState(() {
+        _titleController.text = product.title;
+        _slugController.text = product.slug;
+        _priceController.text = product.price.toString();
+        _stockController.text = product.stock.toString();
+        _descriptionController.text = product.description;
+        _selectedGender = product.gender;
+        _selectedSizes.clear();
+        _selectedSizes.addAll(product.sizes);
+        _tags.clear();
+        _tags.addAll(product.tags);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _slugController.dispose();
+    _priceController.dispose();
+    _stockController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _generateSlug() {
+    final title = _titleController.text.trim();
+    if (title.isNotEmpty) {
+      final slug = title
+          .toLowerCase()
+          .replaceAll(RegExp(r'[^a-z0-9\s-]'), '')
+          .replaceAll(RegExp(r'\s+'), '-')
+          .replaceAll(RegExp(r'-+'), '-');
+      _slugController.text = slug;
+    }
+  }
+
+  void _addTag(String tag) {
+    if (tag.trim().isNotEmpty && !_tags.contains(tag.trim())) {
+      setState(() {
+        _tags.add(tag.trim());
+      });
+    }
+  }
+
+  void _removeTag(String tag) {
+    setState(() {
+      _tags.remove(tag);
+    });
+  }
+
+  void _toggleSize(String size) {
+    setState(() {
+      if (_selectedSizes.contains(size)) {
+        _selectedSizes.remove(size);
+      } else {
+        _selectedSizes.add(size);
+      }
+    });
+  }
+
+  Future<void> _saveProduct() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedGender == null) {
+      _showErrorDialog('Por favor selecciona un género');
+      return;
+    }
+
+    if (_selectedSizes.isEmpty) {
+      _showErrorDialog('Por favor selecciona al menos una talla');
+      return;
+    }
+
+    // Mostrar alerta temporal ya que no tenemos implementada la función
+    _showInfoDialog(
+      widget.productId == null ? 'Crear Producto' : 'Actualizar Producto',
+      'Esta funcionalidad aún no está implementada. Se guardará cuando se complete el repositorio.',
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+      ),
+    );
+  }
+
+  void _showInfoDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEditing = widget.productId != null;
+    final productState = isEditing ? ref.watch(productProvider(widget.productId!)) : null;
+
+    if (isEditing && productState != null && productState.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isEditing ? 'Editar Producto' : 'Nuevo Producto'),
+        centerTitle: true,
+      ),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Título
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Título *',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.title),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'El título es requerido';
+                  }
+                  return null;
+                },
+                onChanged: (_) => _generateSlug(),
+              ),
+              const SizedBox(height: 16),
+
+              // Slug
+              TextFormField(
+                controller: _slugController,
+                decoration: InputDecoration(
+                  labelText: 'Slug *',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.link),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: _generateSlug,
+                    tooltip: 'Generar slug',
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'El slug es requerido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Precio y Stock
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: 'Precio *',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.attach_money),
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Requerido';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Inválido';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _stockController,
+                      decoration: const InputDecoration(
+                        labelText: 'Stock *',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.inventory_2),
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Requerido';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Inválido';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Descripción
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Descripción *',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.description),
+                ),
+                maxLines: 4,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'La descripción es requerida';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Género
+              Text(
+                'Género *',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: _genderOptions.map((gender) {
+                  final isSelected = _selectedGender == gender;
+                  return ChoiceChip(
+                    label: Text(
+                      gender == 'men'
+                          ? 'Hombre'
+                          : gender == 'women'
+                          ? 'Mujer'
+                          : gender == 'kid'
+                          ? 'Niño'
+                          : 'Unisex',
+                    ),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedGender = selected ? gender : null;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 24),
+
+              // Tallas
+              Text(
+                'Tallas *',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: _availableSizes.map((size) {
+                  final isSelected = _selectedSizes.contains(size);
+                  return FilterChip(
+                    label: Text(size),
+                    selected: isSelected,
+                    onSelected: (_) => _toggleSize(size),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 24),
+
+              // Tags
+              Text(
+                'Etiquetas',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Agregar etiqueta',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.local_offer),
+                      ),
+                      onFieldSubmitted: (value) {
+                        _addTag(value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (_tags.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _tags.map((tag) {
+                    return Chip(
+                      label: Text(tag),
+                      onDeleted: () => _removeTag(tag),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                    );
+                  }).toList(),
+                ),
+              const SizedBox(height: 32),
+
+              // Botón de guardar
+              ElevatedButton(
+                onPressed: _isLoading ? null : _saveProduct,
+                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        isEditing ? 'Actualizar Producto' : 'Crear Producto',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

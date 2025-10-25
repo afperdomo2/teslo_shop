@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:teslo_app/presentation/features/products/screens/create_update_product_screen.dart';
 import 'package:teslo_app/presentation/features/products/screens/product_detail_screen.dart';
 import 'package:teslo_app/presentation/features/products/widgets/product_card.dart';
 import 'package:teslo_app/presentation/providers/products_provider.dart';
@@ -122,17 +123,31 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                 ],
               ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Scroll to top
-          _scrollController.animateTo(
-            0,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        },
-        icon: const Icon(Icons.arrow_upward),
-        label: const Text('Inicio'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            heroTag: 'add_product',
+            onPressed: () {
+              context.pushNamed(CreateUpdateProductScreen.routeName);
+            },
+            child: const Icon(Icons.add),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: 'scroll_top',
+            onPressed: () {
+              // Scroll to top
+              _scrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+              );
+            },
+            icon: const Icon(Icons.arrow_upward),
+            label: const Text('Inicio'),
+          ),
+        ],
       ),
     );
   }
