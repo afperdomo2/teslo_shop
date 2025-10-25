@@ -82,28 +82,26 @@ class ProductCard extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Título
-                    Flexible(
-                      child: Text(
-                        product.title,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Text(
+                      product.title,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
 
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
 
                     // Género
                     Row(
                       children: [
                         Icon(_getGenderIcon(product.gender), size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 3),
                         Text(
                           _getGenderLabel(product.gender),
                           style: TextStyle(fontSize: 11, color: Colors.grey[600]),
