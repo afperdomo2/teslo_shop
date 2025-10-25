@@ -16,4 +16,14 @@ class ProductRepositoryImpl extends ProductRepository {
   Future<Product> findProductById(String id) {
     return _dataSource.findProductById(id);
   }
+
+  @override
+  Future<Product> createProduct(Product product) {
+    return _dataSource.createProduct(product);
+  }
+
+  @override
+  Future<Product> updateProduct(Product product) {
+    return _dataSource.updateProduct(product);
+  }
 }

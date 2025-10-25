@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:teslo_app/domain/entities/product.dart';
+import 'package:teslo_app/presentation/providers/product_form_provider.dart';
 import 'package:teslo_app/presentation/providers/product_provider.dart';
+import 'package:teslo_app/presentation/providers/products_provider.dart';
 
 class CreateUpdateProductScreen extends ConsumerStatefulWidget {
   static const String routeName = 'create_update_product';
@@ -27,7 +31,6 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
   String? _selectedGender;
   final List<String> _selectedSizes = [];
   final List<String> _tags = [];
-  final bool _isLoading = false;
 
   final List<String> _availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   final List<String> _genderOptions = ['men', 'women', 'kid', 'unisex'];
@@ -130,11 +133,61 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
       return;
     }
 
-    // Mostrar alerta temporal ya que no tenemos implementada la función
-    _showInfoDialog(
-      widget.productId == null ? 'Crear Producto' : 'Actualizar Producto',
-      'Esta funcionalidad aún no está implementada. Se guardará cuando se complete el repositorio.',
+    final isEditing = widget.productId != null;
+    final formNotifier = ref.read(productFormProvider.notifier);
+
+    // Crear el objeto Product
+    final product = Product(
+      id: widget.productId ?? '',
+      title: _titleController.text.trim(),
+      slug: _slugController.text.trim(),
+      price: int.parse(_priceController.text.trim()),
+      stock: int.parse(_stockController.text.trim()),
+      description: _descriptionController.text.trim(),
+      gender: _selectedGender!,
+      sizes: _selectedSizes,
+      tags: _tags,
+      images: [], // Las imágenes se manejarán por separado
+      user: ProductUser(id: '', email: '', fullName: '', isActive: true, roles: []),
     );
+
+    // Llamar a la función correspondiente
+    final success = isEditing
+        ? await formNotifier.updateProduct(product)
+        : await formNotifier.createProduct(product);
+
+    if (mounted) {
+      if (success) {
+        // Refrescar la lista de productos
+        ref.read(productsProvider.notifier).refresh();
+
+        // Si estamos editando, también refrescar el producto individual
+        if (isEditing) {
+          ref.invalidate(productProvider(widget.productId!));
+        }
+
+        // Mostrar mensaje de éxito y navegar atrás
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isEditing ? 'Producto actualizado exitosamente' : 'Producto creado exitosamente',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        // Esperar un momento antes de navegar para que el usuario vea el mensaje
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          context.pop(); // Volver a la pantalla anterior
+        }
+      } else {
+        // Mostrar error
+        final errorMessage = ref.read(productFormProvider).errorMessage;
+        _showErrorDialog(errorMessage ?? 'Error al guardar el producto');
+      }
+    }
   }
 
   void _showErrorDialog(String message) {
@@ -148,21 +201,11 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
     );
   }
 
-  void _showInfoDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.productId != null;
     final productState = isEditing ? ref.watch(productProvider(widget.productId!)) : null;
+    final formState = ref.watch(productFormProvider);
 
     if (isEditing && productState != null && productState.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -385,9 +428,9 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
 
               // Botón de guardar
               ElevatedButton(
-                onPressed: _isLoading ? null : _saveProduct,
+                onPressed: formState.isLoading ? null : _saveProduct,
                 style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                child: _isLoading
+                child: formState.isLoading
                     ? const SizedBox(
                         height: 20,
                         width: 20,

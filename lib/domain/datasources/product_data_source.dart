@@ -4,4 +4,8 @@ abstract class ProductDataSource {
   Future<List<Product>> findAllProductsByPage({int limit = 10, int offset = 0});
 
   Future<Product> findProductById(String id);
+
+  Future<Product> createProduct(Product product);
+
+  Future<Product> updateProduct(Product product);
 }
