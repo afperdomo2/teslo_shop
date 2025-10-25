@@ -137,7 +137,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
     final formNotifier = ref.read(productFormProvider.notifier);
 
     // Crear el objeto Product
-    final product = Product(
+    final createUpdateProduct = Product(
       id: widget.productId ?? '',
       title: _titleController.text.trim(),
       slug: _slugController.text.trim(),
@@ -147,14 +147,14 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
       gender: _selectedGender!,
       sizes: _selectedSizes,
       tags: _tags,
-      images: [], // Las imágenes se manejarán por separado
+      images: isEditing ? ref.read(productProvider(widget.productId!)).product!.images : [],
       user: ProductUser(id: '', email: '', fullName: '', isActive: true, roles: []),
     );
 
     // Llamar a la función correspondiente
     final success = isEditing
-        ? await formNotifier.updateProduct(product)
-        : await formNotifier.createProduct(product);
+        ? await formNotifier.updateProduct(createUpdateProduct)
+        : await formNotifier.createProduct(createUpdateProduct);
 
     if (mounted) {
       if (success) {

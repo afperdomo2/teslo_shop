@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teslo_app/domain/entities/product.dart';
+import 'package:teslo_app/domain/repositories/product_repository.dart';
 import 'package:teslo_app/presentation/providers/product_repository_provider.dart';
 
 // Provider para el formulario de productos
@@ -40,7 +41,7 @@ class ProductFormState {
 
 // Notifier para el formulario
 class ProductFormNotifier extends StateNotifier<ProductFormState> {
-  final productRepository;
+  final ProductRepository productRepository;
 
   ProductFormNotifier({required this.productRepository}) : super(ProductFormState());
 
