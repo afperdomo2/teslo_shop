@@ -1,4 +1,18 @@
-import 'package:teslo_app/domain/entities/user.dart';
+class ProductUser {
+  String id;
+  String email;
+  String fullName;
+  bool isActive;
+  List<String> roles;
+
+  ProductUser({
+    required this.id,
+    required this.email,
+    required this.fullName,
+    required this.isActive,
+    required this.roles,
+  });
+}
 
 class Product {
   String id;
@@ -11,7 +25,7 @@ class Product {
   String gender;
   List<String> tags;
   List<String> images;
-  User? user;
+  ProductUser user;
 
   Product({
     required this.id,
@@ -24,6 +38,6 @@ class Product {
     required this.gender,
     required this.tags,
     required this.images,
-    this.user,
+    required this.user,
   });
 }

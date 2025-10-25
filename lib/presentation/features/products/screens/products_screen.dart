@@ -1,13 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:teslo_app/presentation/features/products/widgets/product_card.dart';
+import 'package:teslo_app/presentation/providers/products_provider.dart';
 import 'package:teslo_app/presentation/shared/widgets/side_menu.dart';
 
-class ProductsScreen extends StatelessWidget {
+class ProductsScreen extends ConsumerStatefulWidget {
   static const String routeName = 'products';
 
   const ProductsScreen({super.key});
 
   @override
+  ConsumerState<ProductsScreen> createState() => _ProductsScreenState();
+}
+
+class _ProductsScreenState extends ConsumerState<ProductsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      // Cargar más productos cuando esté cerca del final
+      ref.read(productsProvider.notifier).loadNextPage();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final productsState = ref.watch(productsProvider);
+    final products = productsState.products;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Productos'),
@@ -18,211 +50,117 @@ class ProductsScreen extends StatelessWidget {
               // Lógica de búsqueda (placeholder)
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // Más opciones (placeholder)
-            },
-          ),
         ],
       ),
       drawer: const SideMenu(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Sección de bienvenida
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).primaryColor.withOpacity(0.1),
-                    Theme.of(context).primaryColor.withOpacity(0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.2)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.inventory_2, size: 32, color: Theme.of(context).primaryColor),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Bienvenido a Productos',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.bold,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refrescar productos
+          ref.invalidate(productsProvider);
+        },
+        child: products.isEmpty && !productsState.isLoading
+            ? _buildEmptyState(context)
+            : CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Grid de productos
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.7,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        if (index < products.length) {
+                          final product = products[index];
+                          return ProductCard(
+                            product: product,
+                            onTap: () {
+                              // Navegación a detalle del producto
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Producto: ${product.title}'),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                          );
+                        }
+                        return null;
+                      }, childCount: products.length),
+                    ),
+                  ),
+
+                  // Loading indicator
+                  if (productsState.isLoading)
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
+
+                  // Final de la lista
+                  if (productsState.isLastPage && products.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Text(
+                            'No hay más productos',
+                            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Explora nuestro catálogo de productos disponibles',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                    ),
+
+                  // Espaciado final
+                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Sección de estadísticas
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatsCard(
-                    context,
-                    'Total Productos',
-                    '156',
-                    Icons.inventory,
-                    Colors.blue,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatsCard(context, 'Categorías', '12', Icons.category, Colors.green),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatsCard(
-                    context,
-                    'En Stock',
-                    '142',
-                    Icons.check_circle,
-                    Colors.orange,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatsCard(context, 'Favoritos', '28', Icons.favorite, Colors.red),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // Sección de acciones rápidas
-            Text(
-              'Acciones Rápidas',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 16),
-
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.5,
-              children: [
-                _buildActionCard(context, 'Ver Todos', Icons.list_alt, Colors.blue, () {
-                  // Lógica para ver todos los productos
-                }),
-                _buildActionCard(context, 'Agregar Producto', Icons.add_box, Colors.green, () {
-                  // Lógica para agregar producto
-                }),
-                _buildActionCard(context, 'Categorías', Icons.category_outlined, Colors.purple, () {
-                  // Lógica para ver categorías
-                }),
-                _buildActionCard(context, 'Reportes', Icons.analytics_outlined, Colors.orange, () {
-                  // Lógica para ver reportes
-                }),
-              ],
-            ),
-          ],
-        ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Lógica para agregar producto (placeholder)
+          // Scroll to top
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
         },
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.arrow_upward),
+        label: const Text('Inicio'),
       ),
     );
   }
 
-  Widget _buildStatsCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(32.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(icon, color: color, size: 24),
-                Text(
-                  value,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.headlineMedium?.copyWith(color: color, fontWeight: FontWeight.bold),
-                ),
-              ],
+            Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No hay productos disponibles',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.grey[600], fontWeight: FontWeight.w500),
+              'Pull para refrescar',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+              textAlign: TextAlign.center,
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
         ),
       ),
     );

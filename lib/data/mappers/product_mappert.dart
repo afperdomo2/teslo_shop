@@ -1,4 +1,3 @@
-import 'package:teslo_app/data/mappers/user_mapper.dart';
 import 'package:teslo_app/domain/entities/product.dart';
 
 class ProductMapper {
@@ -14,7 +13,19 @@ class ProductMapper {
       gender: json['gender'] as String,
       tags: List<String>.from(json['tags']),
       images: List<String>.from(json['images']),
-      user: json['user'] != null ? UserMapper.userJsonToEntity(json['user']) : null,
+      user: ProductUserMapper.productUserJsonToEntity(json['user'] as Map<String, dynamic>),
+    );
+  }
+}
+
+class ProductUserMapper {
+  static ProductUser productUserJsonToEntity(Map<String, dynamic> json) {
+    return ProductUser(
+      id: json['id'] as String,
+      email: json['email'] as String,
+      fullName: json['fullName'] as String,
+      isActive: json['isActive'] as bool,
+      roles: List<String>.from(json['roles']),
     );
   }
 }
