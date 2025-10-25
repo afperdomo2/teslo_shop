@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:teslo_app/config/router/go_router_notifier.dart';
 import 'package:teslo_app/presentation/features/auth/login/screens/login_screen.dart';
 import 'package:teslo_app/presentation/features/auth/register/screens/register_screen.dart';
+import 'package:teslo_app/presentation/features/products/screens/product_detail_screen.dart';
 import 'package:teslo_app/presentation/features/products/screens/products_screen.dart';
 import 'package:teslo_app/presentation/providers/auth_provider.dart';
 import 'package:teslo_app/presentation/shared/screens/loading_app_screen.dart';
@@ -33,6 +34,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/',
         name: ProductsScreen.routeName,
         builder: (context, state) => const ProductsScreen(),
+      ),
+      GoRoute(
+        path: '/product/:id',
+        name: ProductDetailScreen.routeName,
+        builder: (context, state) {
+          final productId = state.pathParameters['id']!;
+          return ProductDetailScreen(productId: productId);
+        },
       ),
     ],
     redirect: (context, state) {

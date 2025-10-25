@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:teslo_app/presentation/features/products/screens/product_detail_screen.dart';
 import 'package:teslo_app/presentation/features/products/widgets/product_card.dart';
 import 'package:teslo_app/presentation/providers/products_provider.dart';
 import 'package:teslo_app/presentation/shared/widgets/side_menu.dart';
@@ -80,11 +82,9 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                             product: product,
                             onTap: () {
                               // Navegación a detalle del producto
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Producto: ${product.title}'),
-                                  duration: const Duration(seconds: 1),
-                                ),
+                              context.pushNamed(
+                                ProductDetailScreen.routeName,
+                                pathParameters: {'id': product.id},
                               );
                             },
                           );
