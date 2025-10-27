@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teslo_app/domain/entities/product.dart';
+import 'package:teslo_app/domain/repositories/product_repository.dart';
 import 'package:teslo_app/presentation/providers/product_repository_provider.dart';
 
 // Provider para obtener un producto por ID
@@ -30,7 +31,7 @@ class ProductState {
 
 // Notifier para manejar la lógica del producto
 class ProductNotifier extends StateNotifier<ProductState> {
-  final productRepository;
+  final ProductRepository productRepository;
   final String productId;
 
   ProductNotifier({required this.productRepository, required this.productId})
