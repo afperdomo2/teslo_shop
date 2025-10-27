@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:teslo_app/core/utils/validation_extensions.dart';
 import 'package:teslo_app/domain/entities/product.dart';
 import 'package:teslo_app/presentation/providers/product_form_provider.dart';
 import 'package:teslo_app/presentation/providers/product_provider.dart';
@@ -20,6 +22,13 @@ class CreateUpdateProductScreen extends ConsumerStatefulWidget {
 class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  // Validadores
+  late final titleValidator = ValidationBuilder().required().minLength(3).build();
+  late final slugValidator = ValidationBuilder().required().isSlug().build();
+  late final priceValidator = ValidationBuilder().required().integer().positive().build();
+  late final stockValidator = ValidationBuilder().required().integer().min(0).build();
+  late final descriptionValidator = ValidationBuilder().required().minLength(10).build();
+
   // Controladores de texto
   late final TextEditingController _titleController;
   late final TextEditingController _slugController;
@@ -32,6 +41,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
   String? _selectedGender;
   final List<String> _selectedSizes = [];
   final List<String> _tags = [];
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   final List<String> _availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   final List<String> _genderOptions = ['men', 'women', 'kid', 'unisex'];
@@ -123,6 +133,13 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
   }
 
   Future<void> _saveProduct() async {
+    // Activar validación automática si no estaba activada
+    if (_autovalidateMode != AutovalidateMode.always) {
+      setState(() {
+        _autovalidateMode = AutovalidateMode.always;
+      });
+    }
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -222,6 +239,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
       ),
       body: Form(
         key: _formKey,
+        autovalidateMode: _autovalidateMode,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -234,13 +252,9 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
                   labelText: 'Título *',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.title),
+                  helperText: 'Mínimo 3 caracteres',
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'El título es requerido';
-                  }
-                  return null;
-                },
+                validator: titleValidator,
                 onChanged: (_) => _generateSlug(),
               ),
               const SizedBox(height: 16),
@@ -252,18 +266,14 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
                   labelText: 'Slug *',
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.link),
+                  helperText: 'Solo letras minúsculas, números y guiones',
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.refresh),
                     onPressed: _generateSlug,
                     tooltip: 'Generar slug',
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'El slug es requerido';
-                  }
-                  return null;
-                },
+                validator: slugValidator,
               ),
               const SizedBox(height: 16),
 
@@ -277,18 +287,11 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
                         labelText: 'Precio *',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.attach_money),
+                        helperText: 'Mayor a 0',
                       ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Requerido';
-                        }
-                        if (int.tryParse(value) == null) {
-                          return 'Inválido';
-                        }
-                        return null;
-                      },
+                      validator: priceValidator,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -299,18 +302,11 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
                         labelText: 'Stock *',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.inventory_2),
+                        helperText: 'Desde 0',
                       ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Requerido';
-                        }
-                        if (int.tryParse(value) == null) {
-                          return 'Inválido';
-                        }
-                        return null;
-                      },
+                      validator: stockValidator,
                     ),
                   ),
                 ],
@@ -324,14 +320,10 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
                   labelText: 'Descripción *',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.description),
+                  helperText: 'Mínimo 10 caracteres',
                 ),
                 maxLines: 4,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'La descripción es requerida';
-                  }
-                  return null;
-                },
+                validator: descriptionValidator,
               ),
               const SizedBox(height: 24),
 

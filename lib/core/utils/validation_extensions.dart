@@ -134,3 +134,43 @@ extension SecurityValidationExtension on ValidationBuilder {
     });
   }
 }
+
+/// Extensiones para ValidationBuilder que añaden validaciones de formato
+extension FormatValidationExtension on ValidationBuilder {
+  /// Valida que el valor sea un slug válido (letras minúsculas, números y guiones)
+  ValidationBuilder isSlug([String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      final RegExp slugRegExp = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$');
+      if (!slugRegExp.hasMatch(value)) {
+        return message ?? 'Solo se permiten letras minúsculas, números y guiones';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor tenga una longitud mínima específica
+  ValidationBuilder minLength(int minLength, [String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      if (value.length < minLength) {
+        return message ?? 'Debe tener al menos $minLength caracteres';
+      }
+      return null;
+    });
+  }
+
+  /// Valida que el valor tenga una longitud máxima específica
+  ValidationBuilder maxLength(int maxLength, [String? message]) {
+    return add((value) {
+      if (value == null || value.isEmpty) return null;
+
+      if (value.length > maxLength) {
+        return message ?? 'Debe tener máximo $maxLength caracteres';
+      }
+      return null;
+    });
+  }
+}
