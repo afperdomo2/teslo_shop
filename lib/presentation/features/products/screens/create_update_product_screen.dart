@@ -26,6 +26,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
   late final TextEditingController _priceController;
   late final TextEditingController _stockController;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _tagController;
 
   // Estado del formulario
   String? _selectedGender;
@@ -43,6 +44,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
     _priceController = TextEditingController();
     _stockController = TextEditingController();
     _descriptionController = TextEditingController();
+    _tagController = TextEditingController();
 
     // Si estamos editando, cargar los datos después del primer frame
     if (widget.productId != null) {
@@ -79,6 +81,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
     _priceController.dispose();
     _stockController.dispose();
     _descriptionController.dispose();
+    _tagController.dispose();
     super.dispose();
   }
 
@@ -98,6 +101,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
     if (tag.trim().isNotEmpty && !_tags.contains(tag.trim())) {
       setState(() {
         _tags.add(tag.trim());
+        _tagController.clear(); // Limpiar el campo después de agregar la etiqueta
       });
     }
   }
@@ -399,6 +403,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
                 children: [
                   Expanded(
                     child: TextFormField(
+                      controller: _tagController,
                       decoration: const InputDecoration(
                         labelText: 'Agregar etiqueta',
                         border: OutlineInputBorder(),
