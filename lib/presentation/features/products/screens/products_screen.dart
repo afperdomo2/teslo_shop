@@ -57,7 +57,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Productos'),
+        title: const Text('Productos 22'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),

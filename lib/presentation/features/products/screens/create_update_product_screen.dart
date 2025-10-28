@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:teslo_app/core/camera_gallery/camera_gallery_service.dart';
+import 'package:teslo_app/core/camera_gallery/camera_gallery_service_impl.dart';
 import 'package:teslo_app/core/utils/validation_extensions.dart';
 import 'package:teslo_app/domain/entities/product.dart';
+import 'package:teslo_app/presentation/features/products/widgets/product_image_selector.dart';
 import 'package:teslo_app/presentation/providers/product_form_provider.dart';
 import 'package:teslo_app/presentation/providers/product_provider.dart';
 import 'package:teslo_app/presentation/providers/products_provider.dart';
@@ -21,6 +24,7 @@ class CreateUpdateProductScreen extends ConsumerStatefulWidget {
 
 class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductScreen> {
   final _formKey = GlobalKey<FormState>();
+  final CameraGalleryService _cameraGalleryService = CameraGalleryServiceImpl();
 
   // Validadores
   late final titleValidator = ValidationBuilder().required().minLength(3).build();
@@ -42,6 +46,10 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
   final List<String> _selectedSizes = [];
   final List<String> _tags = [];
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+
+  // Manejo de imágenes
+  final List<String> _remoteImages = []; // URLs de imágenes existentes (de la API)
+  final List<String> _localImages = []; // Rutas de archivos locales (nuevas)
 
   final List<String> _availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   final List<String> _genderOptions = ['men', 'women', 'kid', 'unisex'];
@@ -80,6 +88,8 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
         _selectedSizes.addAll(product.sizes);
         _tags.clear();
         _tags.addAll(product.tags);
+        _remoteImages.clear();
+        _remoteImages.addAll(product.images);
       });
     }
   }
@@ -122,6 +132,49 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
     });
   }
 
+  // Métodos para manejo de imágenes
+  Future<void> _takePhoto() async {
+    try {
+      final photoPath = await _cameraGalleryService.takePhoto();
+      if (photoPath != null) {
+        setState(() {
+          _localImages.add(photoPath);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorDialog('Error al tomar la foto: $e');
+      }
+    }
+  }
+
+  Future<void> _selectFromGallery() async {
+    try {
+      final images = await _cameraGalleryService.selectMultiplePhotos();
+      if (images.isNotEmpty) {
+        setState(() {
+          _localImages.addAll(images);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorDialog('Error al seleccionar imágenes: $e');
+      }
+    }
+  }
+
+  void _removeRemoteImage(String imageUrl) {
+    setState(() {
+      _remoteImages.remove(imageUrl);
+    });
+  }
+
+  void _removeLocalImage(String imagePath) {
+    setState(() {
+      _localImages.remove(imagePath);
+    });
+  }
+
   void _toggleSize(String size) {
     setState(() {
       if (_selectedSizes.contains(size)) {
@@ -157,6 +210,9 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
     final isEditing = widget.productId != null;
     final formNotifier = ref.read(productFormProvider.notifier);
 
+    // Combinar imágenes remotas y locales
+    final allImages = [..._remoteImages, ..._localImages];
+
     // Crear el objeto Product
     final createUpdateProduct = Product(
       id: widget.productId ?? '',
@@ -168,7 +224,7 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
       gender: _selectedGender!,
       sizes: _selectedSizes,
       tags: _tags,
-      images: isEditing ? ref.read(productProvider(widget.productId!)).product!.images : [],
+      images: allImages,
       user: ProductUser(id: '', email: '', fullName: '', isActive: true, roles: []),
     );
 
@@ -380,6 +436,17 @@ class _CreateUpdateProductScreenState extends ConsumerState<CreateUpdateProductS
                     onSelected: (_) => _toggleSize(size),
                   );
                 }).toList(),
+              ),
+              const SizedBox(height: 24),
+
+              // Selector de imágenes
+              ProductImageSelector(
+                remoteImages: _remoteImages,
+                localImages: _localImages,
+                onTakePhoto: _takePhoto,
+                onSelectFromGallery: _selectFromGallery,
+                onRemoveRemoteImage: _removeRemoteImage,
+                onRemoveLocalImage: _removeLocalImage,
               ),
               const SizedBox(height: 24),
 
