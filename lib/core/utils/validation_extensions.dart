@@ -142,7 +142,7 @@ extension FormatValidationExtension on ValidationBuilder {
     return add((value) {
       if (value == null || value.isEmpty) return null;
 
-      final RegExp slugRegExp = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$');
+      final RegExp slugRegExp = RegExp(r'^[a-z0-9]+(?:[-_][a-z0-9]+)*$');
       if (!slugRegExp.hasMatch(value)) {
         return message ?? 'Solo se permiten letras minúsculas, números y guiones';
       }
