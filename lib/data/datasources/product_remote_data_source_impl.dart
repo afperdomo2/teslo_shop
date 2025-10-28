@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:teslo_app/config/constants/envs_constants.dart';
-import 'package:teslo_app/data/mappers/product_mappert.dart';
+import 'package:teslo_app/data/mappers/file_uploaded_mapper.dart';
+import 'package:teslo_app/data/mappers/product_mapper.dart';
 import 'package:teslo_app/domain/datasources/product_data_source.dart';
 import 'package:teslo_app/domain/entities/product.dart';
 
@@ -48,6 +49,7 @@ class ProductRemoteDataSourceImpl extends ProductDataSource {
   @override
   Future<Product> createProduct(Product product) async {
     try {
+      final List<String> images = await _uploadAndGetImages(product.images);
       final response = await apiClient.post<Map<String, dynamic>>(
         '/products',
         data: {
@@ -59,7 +61,7 @@ class ProductRemoteDataSourceImpl extends ProductDataSource {
           'sizes': product.sizes,
           'gender': product.gender,
           'tags': product.tags,
-          'images': product.images,
+          'images': images,
         },
       );
       return ProductMapper.productJsonToEntity(response.data!);
@@ -71,9 +73,50 @@ class ProductRemoteDataSourceImpl extends ProductDataSource {
     }
   }
 
+  Future<String> _uploadFile(String path) async {
+    try {
+      String fileName = path.split('/').last;
+      FormData formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(path, filename: fileName),
+      });
+      final response = await apiClient.post('/files/product', data: formData);
+      if (response.statusCode == 201) {
+        String imageUrl = FileUploadedMapper.fileJsonToEntity(response.data!).image;
+        return imageUrl;
+      } else {
+        throw Exception('Error al subir la imagen: $fileName - Status: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      throw Exception('Error de red al subir la imagen: ${e.message}');
+    } catch (e) {
+      throw Exception('Error inesperado al subir la imagen: $e');
+    }
+  }
+
+  Future<List<String>> _uploadAndGetImages(List<String> imagePaths) async {
+    final imagesToUpload = imagePaths.where((path) {
+      return !path.startsWith('http://') && !path.startsWith('https://');
+    }).toList();
+
+    final imagesToIgnore = imagePaths.where((path) {
+      return path.startsWith('http://') || path.startsWith('https://');
+    }).toList();
+
+    // Si no hay imágenes para subir, retornar solo las remotas
+    if (imagesToUpload.isEmpty) {
+      return imagesToIgnore;
+    }
+
+    final List<Future<String>> uploadJob = imagesToUpload.map(_uploadFile).toList();
+    final uploadedImageUrls = await Future.wait(uploadJob);
+
+    return [...imagesToIgnore, ...uploadedImageUrls];
+  }
+
   @override
   Future<Product> updateProduct(Product product) async {
     try {
+      final List<String> images = await _uploadAndGetImages(product.images);
       final response = await apiClient.patch<Map<String, dynamic>>(
         '/products/${product.id}',
         data: {
@@ -85,7 +128,7 @@ class ProductRemoteDataSourceImpl extends ProductDataSource {
           'sizes': product.sizes,
           'gender': product.gender,
           'tags': product.tags,
-          'images': product.images,
+          'images': images,
         },
       );
       return ProductMapper.productJsonToEntity(response.data!);
