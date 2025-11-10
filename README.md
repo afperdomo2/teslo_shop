@@ -4,12 +4,13 @@ Aplicación móvil de e-commerce construida con Flutter, implementando Clean Arc
 
 ## 📱 Vista Previa de la Aplicación
 
-<div align="left">
-  <img src="assets/images/login.png" alt="App" width="500" />
-  <img src="assets/images/lista-productos.png" alt="App" width="500" />
-  <img src="assets/images/detalles-productos.png" alt="App" width="500" />
-  <img src="assets/images/editar-producto.png" alt="App" width="500" />
-</div>
+| Login | Lista de Productos |
+|-------|-------------------|
+| <img src="assets/images/login.png" alt="Login" width="300" /> | <img src="assets/images/lista-productos.png" alt="Lista de Productos" width="300" /> |
+
+| Detalles de Producto | Editar Producto |
+|---------------------|-----------------|
+| <img src="assets/images/detalles-productos.png" alt="Detalles de Producto" width="300" /> | <img src="assets/images/editar-producto.png" alt="Editar Producto" width="300" /> |
 
 ## 🧾 Tabla de Contenidos
 
